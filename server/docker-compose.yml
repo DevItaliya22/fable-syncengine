@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: syncengine-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: syncengine
+    ports:
+      - "51214:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

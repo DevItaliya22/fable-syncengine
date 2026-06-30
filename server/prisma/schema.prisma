@@ -1,0 +1,50 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ----- Domain models (server-side mirrors of the client models) -----
+
+model Issue {
+  id          String   @id @db.Uuid
+  title       String
+  description String   @default("")
+  status      String   @default("backlog")
+  priority    Int      @default(0)
+  sortOrder   Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @db.Uuid
+  body      String
+  issueId   String   @db.Uuid
+  author    String   @default("anonymous")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([issueId])
+}
+
+// ----- Sync engine bookkeeping -----
+
+// Every accepted mutation appends one row here. The autoincrementing
+// primary key IS the global syncId: a total order over all changes to
+// the database (lastSyncId = max(syncId)). Clients use it to know
+// whether they are up to date and to fetch missed delta packets.
+model SyncAction {
+  syncId    BigInt   @id @default(autoincrement())
+  modelName String
+  modelId   String   @db.Uuid
+  action    String // "I" insert | "U" update | "D" delete
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@index([modelName, modelId])
+}
